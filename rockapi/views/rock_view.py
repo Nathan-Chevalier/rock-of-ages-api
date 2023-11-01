@@ -34,12 +34,16 @@ class RockView(ViewSet):
 
     def list(self, request):
         """Handle GET requests for all items
-
+        
         Returns:
             Response -- JSON serialized array
         """
+        owner_only = self.request.query_params.get("owner", None)
         try:
             rocks = Rock.objects.all()
+            if owner_only is not None and owner_only == "current": #? Checks if '?owner=current' is in the parsed URL.
+                rocks = rocks.filter(user=request.auth.user) #? Filters rocks owned by the user.
+
             serializer = RockSerializer(rocks, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as ex:
